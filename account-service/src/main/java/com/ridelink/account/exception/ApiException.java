@@ -2,6 +2,7 @@ package com.ridelink.account.exception;
 
 import org.springframework.http.HttpStatus;
 
+// Carries an HTTP status along with the error message for API failures.
 public class ApiException extends RuntimeException {
     private final HttpStatus status;
 
@@ -10,6 +11,7 @@ public class ApiException extends RuntimeException {
         this.status = status;
     }
 
+    // Lets the exception handler choose the response status.
     public HttpStatus getStatus() {
         return status;
     }
