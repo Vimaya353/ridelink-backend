@@ -29,6 +29,7 @@ public class UserController {
     @Operation(summary = "Get a user profile (self or ADMIN)")
     @GetMapping("/{id}")
     public UserResponse getUser(@PathVariable String id, HttpServletRequest request) {
+        // Users can view their own profile; admins can view any profile.
         AuthenticatedUser authUser = AuthHelper.requireAuth(request);
         if (!authUser.getId().equals(id) && !"ADMIN".equals(authUser.getRole())) {
             throw new ApiException(HttpStatus.FORBIDDEN, "Forbidden");
@@ -42,12 +43,15 @@ public class UserController {
     @PatchMapping("/{id}")
     public UserResponse updateUser(@PathVariable String id, @RequestBody UpdateUserRequest req,
             HttpServletRequest request) {
+        // Profile edits are limited to the account owner.
         AuthenticatedUser authUser = AuthHelper.requireAuth(request);
         if (!authUser.getId().equals(id)) {
             throw new ApiException(HttpStatus.FORBIDDEN, "Forbidden");
         }
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found"));
+
+        // A missing name leaves the existing profile name unchanged.
         if (req.getName() != null) {
             user.setName(req.getName());
         }
@@ -59,9 +63,11 @@ public class UserController {
     @PatchMapping("/{id}/status")
     public UserResponse updateStatus(@PathVariable String id, @RequestBody java.util.Map<String, String> body,
             HttpServletRequest request) {
+        // Only admins may change another user's account status.
         AuthenticatedUser authUser = AuthHelper.requireAuth(request);
         AuthHelper.requireRole(authUser, "ADMIN");
 
+        // Accept only the account states supported by this endpoint.
         String status = body.get("status");
         if (!java.util.Set.of("ACTIVE", "SUSPENDED").contains(status)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "status must be ACTIVE or SUSPENDED");
