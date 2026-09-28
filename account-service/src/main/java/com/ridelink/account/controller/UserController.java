@@ -8,6 +8,7 @@ import com.ridelink.account.repository.UserRepository;
 import com.ridelink.account.security.AuthHelper;
 import com.ridelink.account.security.AuthenticatedUser;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/users")
+@SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Users", description = "Profile viewing and updating")
 public class UserController {
 
@@ -39,7 +41,7 @@ public class UserController {
     @Operation(summary = "Update own profile name")
     @PatchMapping("/{id}")
     public UserResponse updateUser(@PathVariable String id, @RequestBody UpdateUserRequest req,
-                                    HttpServletRequest request) {
+            HttpServletRequest request) {
         AuthenticatedUser authUser = AuthHelper.requireAuth(request);
         if (!authUser.getId().equals(id)) {
             throw new ApiException(HttpStatus.FORBIDDEN, "Forbidden");
@@ -56,7 +58,7 @@ public class UserController {
     @Operation(summary = "Suspend or reactivate a user (ADMIN only)")
     @PatchMapping("/{id}/status")
     public UserResponse updateStatus(@PathVariable String id, @RequestBody java.util.Map<String, String> body,
-                                      HttpServletRequest request) {
+            HttpServletRequest request) {
         AuthenticatedUser authUser = AuthHelper.requireAuth(request);
         AuthHelper.requireRole(authUser, "ADMIN");
 
