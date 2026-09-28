@@ -6,6 +6,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
 
+// Each User object is stored as a document in the users collection.
 @Document(collection = "users")
 public class User {
 
@@ -14,15 +15,19 @@ public class User {
 
     private String name;
 
+    // The unique index prevents two stored users from sharing an email address.
     @Indexed(unique = true)
     private String email;
 
+    // Store the encoded password, never the password submitted at registration.
     private String passwordHash;
 
     private String role; // PASSENGER, DRIVER, ADMIN
 
+    // New accounts start active and can later be suspended by an admin.
     private String status = "ACTIVE"; // ACTIVE, SUSPENDED
 
+    // Record when a new user object is created.
     private Instant createdAt = Instant.now();
 
     public User() {
