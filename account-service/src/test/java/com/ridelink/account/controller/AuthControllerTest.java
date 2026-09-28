@@ -44,6 +44,8 @@ class AuthControllerTest {
         req.setRole("PASSENGER");
 
         when(userRepository.existsByEmail("nimal@example.com")).thenReturn(false);
+
+        // Give the saved user an ID, as MongoDB would after persistence.
         when(userRepository.save(any(User.class))).thenAnswer(inv -> {
             User u = inv.getArgument(0);
             u.setId("user-1");
@@ -65,6 +67,7 @@ class AuthControllerTest {
         req.setPassword("password123");
         req.setRole("DRIVER");
 
+        // An existing email should stop registration before saving a new user.
         when(userRepository.existsByEmail("kamal@example.com")).thenReturn(true);
 
         ApiException ex = assertThrows(ApiException.class, () -> authController.register(req));
@@ -83,6 +86,7 @@ class AuthControllerTest {
         req.setEmail("kamal@example.com");
         req.setPassword("wrong-password");
 
+        // A mismatched password must not result in an authentication token.
         ApiException ex = assertThrows(ApiException.class, () -> authController.login(req));
         assertEquals(401, ex.getStatus().value());
     }
@@ -94,6 +98,8 @@ class AuthControllerTest {
         existing.setId("user-3");
 
         when(userRepository.findByEmail("nimal@example.com")).thenReturn(Optional.of(existing));
+
+        // Stub token generation to test the response without creating a real JWT.
         when(jwtUtil.generateToken("user-3", "PASSENGER", "nimal@example.com")).thenReturn("fake-jwt-token");
 
         LoginRequest req = new LoginRequest();
